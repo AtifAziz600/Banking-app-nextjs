@@ -1,21 +1,21 @@
 export const sidebarLinks = [
   {
-    imgURL: "/icons/home.svg",
+    imgURL: "/icon/home.svg",
     route: "/",
     label: "Home",
   },
   {
-    imgURL: "/icons/dollar-circle.svg",
+    imgURL: "/icon/dollar-circle.svg",
     route: "/my-banks",
     label: "My Banks",
   },
   {
-    imgURL: "/icons/transaction.svg",
+    imgURL: "/icon/transaction.svg",
     route: "/transaction-history",
     label: "Transaction History",
   },
   {
-    imgURL: "/icons/money-send.svg",
+    imgURL: "/icon/money-send.svg",
     route: "/payment-transfer",
     label: "Transfer Funds",
   },
@@ -61,7 +61,7 @@ export const topCategoryStyles = {
       bg: "bg-blue-100",
       indicator: "bg-blue-700",
     },
-    icon: "/icons/monitor.svg",
+    icon: "/icon/monitor.svg",
   },
   Travel: {
     bg: "bg-success-25",
@@ -74,7 +74,7 @@ export const topCategoryStyles = {
       bg: "bg-success-100",
       indicator: "bg-success-700",
     },
-    icon: "/icons/coins.svg",
+    icon: "/icon/coins.svg",
   },
   default: {
     bg: "bg-pink-25",
@@ -87,7 +87,7 @@ export const topCategoryStyles = {
       bg: "bg-pink-100",
       indicator: "bg-pink-700",
     },
-    icon: "/icons/shopping-bag.svg",
+    icon: "/icon/shopping-bag.svg",
   },
 };
 
