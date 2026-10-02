@@ -150,7 +150,7 @@ const PaymentTransferForm = ({ accounts = [] }: { accounts: any[] }) => {
               <div className="payment-transfer_form-item pb-6 pt-5">
                 <div className="payment-transfer_form-content">
                   <FormLabel className="text-14 font-medium text-gray-700">
-                    Recipient's Email Address
+                    Recipient&apos;s Email Address
                   </FormLabel>
                   <p className="text-12 font-normal text-gray-600">
                     Please enter the email address of the recipient

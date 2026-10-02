@@ -3,24 +3,5 @@
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "regions": ["iad1"],
-  "env": {
-    "NEXT_PUBLIC_APPWRITE_ENDPOINT": "@next_public_appwrite_endpoint",
-    "NEXT_PUBLIC_APPWRITE_PROJECT": "@next_public_appwrite_project",
-    "NEXT_APPWRITE_KEY": "@next_appwrite_key",
-    "NEXT_APPWRITE_DATABASE_ID": "@next_appwrite_database_id",
-    "NEXT_APPWRITE_USER_COLLECTION_ID": "@next_appwrite_user_collection_id",
-    "NEXT_APPWRITE_BANK_COLLECTION_ID": "@next_appwrite_bank_collection_id",
-    "NEXT_APPWRITE_TRANSACTION_COLLECTION_ID": "@next_appwrite_transaction_collection_id",
-    "PLAID_CLIENT_ID": "@plaid_client_id",
-    "PLAID_SECRET": "@plaid_secret",
-    "PLAID_ENV": "@plaid_env",
-    "PLAID_PRODUCTS": "@plaid_products",
-    "PLAID_COUNTRY_CODES": "@plaid_country_codes",
-    "DWOLLA_KEY": "@dwolla_key",
-    "DWOLLA_SECRET": "@dwolla_secret",
-    "DWOLLA_API_URL": "@dwolla_api_url",
-    "DWOLLA_BASE_URL": "@dwolla_base_url",
-    "DWOLLA_ENV": "@dwolla_env"
-  }
+  "regions": ["iad1"]
 }
