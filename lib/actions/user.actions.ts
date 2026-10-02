@@ -35,16 +35,57 @@ export const signIn = async ({email, password}: signInProps) => {
 
 export const signUp = async (userData: SignUpParams) => {
   const { email, firstName, lastName, password } = userData;
-  try {
-      const { account } = await createAdminClient();
+  let newUserAccount;
 
-      const newUserAccount =
-      await account.create(
+  try {
+      const { account, Databases } = await createAdminClient();
+
+      newUserAccount = await account.create(
         ID.unique(),
         userData.email,
         userData.password,
         `${firstName} ${lastName}`
       );
+
+      // Create Dwolla customer
+      const dwollaCustomerUrl = await createDwollaCustomer({
+        firstName: firstName!,
+        lastName: lastName!,
+        email,
+        type: "personal",
+        address1: userData.address1!,
+        city: userData.city!,
+        state: userData.state!,
+        postalCode: userData.postalCode!,
+        dateOfBirth: userData.dateOfBirth!,
+        ssn: userData.ssn!,
+      });
+
+      if (!dwollaCustomerUrl) throw new Error("Failed to create Dwolla customer");
+
+      const dwollaCustomerId = dwollaCustomerUrl.split("/").pop()!;
+
+      // Save full user to Appwrite database
+      const newUser = await Databases.createDocument(
+        process.env.NEXT_APPWRITE_DATABASE_ID!,
+        process.env.NEXT_APPWRITE_USER_COLLECTION_ID!,
+        ID.unique(),
+        {
+          userId: newUserAccount.$id,
+          firstName,
+          lastName,
+          email,
+          address1: userData.address1,
+          city: userData.city,
+          state: userData.state,
+          postalCode: userData.postalCode,
+          dateOfBirth: userData.dateOfBirth,
+          ssn: userData.ssn,
+          dwollaCustomerId,
+          dwollaCustomerUrl,
+        }
+      );
+
       const session = await account.createEmailPasswordSession(email, password);
 
       cookies().set("appwrite-session", session.secret, {
@@ -54,10 +95,9 @@ export const signUp = async (userData: SignUpParams) => {
         secure: process.env.NODE_ENV === "production",
       });
 
-      return parseStringify(newUserAccount);
+      return parseStringify(newUser);
   } catch (error: any) {
       console.error("Sign up error:", error);
-      // Return error object instead of throwing to prevent server crash
       return { error: error?.message || "Sign up failed. Please try again." };
   }
 };
@@ -66,10 +106,29 @@ export const signUp = async (userData: SignUpParams) => {
 export async function getLoggedInUser() {
   try {
     const { account } = await createSessionClient();
-    const user =  await account.get();
+    const result = await account.get();
 
-    return parseStringify(user)
+    const user = await getUserInfo({ userId: result.$id });
+
+    return parseStringify(user);
   } catch (error) {
+    return null;
+  }
+}
+
+export const getUserInfo = async ({ userId }: getUserInfoProps) => {
+  try {
+    const { Databases } = await createAdminClient();
+
+    const user = await Databases.listDocuments(
+      process.env.NEXT_APPWRITE_DATABASE_ID!,
+      process.env.NEXT_APPWRITE_USER_COLLECTION_ID!,
+      [Query.equal("userId", [userId])]
+    );
+
+    return parseStringify(user.documents[0]);
+  } catch (error) {
+    console.error("Error getting user info:", error);
     return null;
   }
 }
