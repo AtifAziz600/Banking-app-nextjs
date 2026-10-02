@@ -22,7 +22,7 @@ const PlaidLink = ({user, variant}: PlaidLinkProps ) => {
       };
 
       getLinkToken();
-    }, [user.$id]);
+    }, [user.$id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const onSuccess = useCallback<PlaidLinkOnSuccess>(
       async (public_token: string) => {
@@ -33,7 +33,7 @@ const PlaidLink = ({user, variant}: PlaidLinkProps ) => {
 
         router.push("/");
       },
-      [user.$id]
+      [user.$id] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
     const config: PlaidLinkOptions = {
