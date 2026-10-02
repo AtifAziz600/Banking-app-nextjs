@@ -28,6 +28,7 @@ const AuthForm = ({type}: {type: string}) => {
     const router = useRouter();
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const formSchema = authFormSchema(type);
   // 1. Define your form.
@@ -42,12 +43,10 @@ const AuthForm = ({type}: {type: string}) => {
   // 2. Define a submit handler.
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
+    setErrorMessage("");
     try {
         if(type === 'sign-up') {
-          
-
           const newUser = await signUp(data);
-
           setUser(newUser);
         }
         if(type === 'sign-in') {
@@ -58,8 +57,9 @@ const AuthForm = ({type}: {type: string}) => {
 
              if (response) router.push("/");
         }
-    } catch (error) {
-        console.log(error)
+    } catch (error: any) {
+        console.log(error);
+        setErrorMessage(error?.message || "Something went wrong. Please try again.");
     } finally {
         setIsLoading(false);
     }
@@ -91,11 +91,11 @@ const AuthForm = ({type}: {type: string}) => {
           </h1>
         </div>
       </header>
-      {/* {user ? ( */}
+      {user ? (
         <div className="flex flex-col gap-4">
           <PlaidLink user={user} variant="primary" />
         </div>
-      {/* ) : ( */}
+      ) : null}
         <>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -171,6 +171,9 @@ const AuthForm = ({type}: {type: string}) => {
                 placeholder="Enter your Password"
               />
 
+              {errorMessage && (
+                <p className="text-red-500 text-sm text-center">{errorMessage}</p>
+              )}
               <div className="flex flex-col gap-4">
                 <Button type="submit" disabled={isLoading} className="form-btn">
                   {isLoading ? (

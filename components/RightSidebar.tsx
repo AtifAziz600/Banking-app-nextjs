@@ -15,7 +15,7 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
         <div className="profile">
           <div className="profile-img">
             <span className="text-5xl font-bold text-blue-500">
-              {user.name[0]}
+              {user.name?.[0] || "U"}
             </span>
           </div>
 
@@ -35,7 +35,7 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
           </Link>
         </div>
 
-        {banks?.length > 0 && (
+        {banks?.length > 0 ? (
           <div className="relative flex flex-1 flex-col items-center justify-center gap-5">
             <div className="relative z-10">
               <BankCard
@@ -56,15 +56,21 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
               </div>
             )}
           </div>
+        ) : (
+          <p className="text-14 text-gray-500 text-center py-4">No banks added yet</p>
         )}
 
         <div className="mt-10 flex flex-1 flex-col gap-6">
           <h2 className="header-2">Top categories</h2>
 
           <div className="space-y-5">
-            {categories.map((category, index) => (
-              <Category key={category.name} category={category} />
-            ))}
+            {categories.length > 0 ? (
+              categories.map((category, index) => (
+                <Category key={category.name} category={category} />
+              ))
+            ) : (
+              <p className="text-14 text-gray-500 text-center py-4">No transactions yet</p>
+            )}
           </div>
         </div>
       </section>

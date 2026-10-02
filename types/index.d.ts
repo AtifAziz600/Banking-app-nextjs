@@ -166,6 +166,7 @@ declare interface PageHeaderProps {
   topDescription: string;
   bottomDescription: string;
   connectBank?: boolean;
+  user?: User;
 }
 
 declare interface PaginationProps {

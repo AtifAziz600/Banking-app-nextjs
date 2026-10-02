@@ -7,7 +7,7 @@ import {
   PlaidLinkOptions,
   usePlaidLink,
 } from "react-plaid-link";
-import { createLinkToken } from '@/lib/actions/user.actions';
+import { createLinkToken, exchangePublicToken } from '@/lib/actions/user.actions';
 
 const PlaidLink = ({user, variant}: PlaidLinkProps ) => {
     const router = useRouter();
@@ -22,18 +22,18 @@ const PlaidLink = ({user, variant}: PlaidLinkProps ) => {
       };
 
       getLinkToken();
-    }, [user]);
+    }, [user.$id]);
 
     const onSuccess = useCallback<PlaidLinkOnSuccess>(
       async (public_token: string) => {
-        // await exchangePublicToken({
-        //   publicToken: public_token,
-        //   user,
-        // });
+        await exchangePublicToken({
+          publicToken: public_token,
+          user,
+        });
 
         router.push("/");
       },
-      [user]
+      [user.$id]
     );
 
     const config: PlaidLinkOptions = {
