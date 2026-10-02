@@ -47,6 +47,10 @@ const AuthForm = ({type}: {type: string}) => {
     try {
         if(type === 'sign-up') {
           const newUser = await signUp(data);
+          if (newUser?.error) {
+            setErrorMessage(newUser.error);
+            return;
+          }
           setUser(newUser);
         }
         if(type === 'sign-in') {
@@ -54,6 +58,11 @@ const AuthForm = ({type}: {type: string}) => {
                email: data.email,
                password: data.password,
              });
+
+             if (response?.error) {
+               setErrorMessage(response.error);
+               return;
+             }
 
              if (response) router.push("/");
         }

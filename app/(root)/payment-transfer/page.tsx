@@ -9,7 +9,7 @@ const Transfer = async () => {
 
   if (!loggedIn) redirect("/sign-in");
 
-  const banks = await getBanks({ userId: loggedIn.$id });
+  const banks = await getBanks({ userId: loggedIn.userId });
 
   return (
     <section className="payment-transfer">

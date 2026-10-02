@@ -15,7 +15,7 @@ const Home = async ({ searchParams: { id, page } }: SearchParamProps) => {
 
   if (!loggedIn) redirect("/sign-in");
 
-  const banks = await getBanks({ userId: loggedIn.$id });
+  const banks = await getBanks({ userId: loggedIn.userId });
 
   const accounts = banks?.documents || [];
 

@@ -27,24 +27,65 @@ export const signIn = async ({email, password}: signInProps) => {
         });
 
         return parseStringify(response)
-    } catch (error) {
-        console.error("Error", error)
-        throw error;
+    } catch (error: any) {
+        console.error("Sign in error:", error);
+        return { error: error?.message || "Invalid email or password. Please try again." };
     }
 }
 
 export const signUp = async (userData: SignUpParams) => {
   const { email, firstName, lastName, password } = userData;
-  try {
-      const { account } = await createAdminClient();
+  let newUserAccount;
 
-      const newUserAccount =
-      await account.create(
+  try {
+      const { account, Databases } = await createAdminClient();
+
+      newUserAccount = await account.create(
         ID.unique(),
         userData.email,
         userData.password,
         `${firstName} ${lastName}`
       );
+
+      // Create Dwolla customer
+      const dwollaCustomerUrl = await createDwollaCustomer({
+        firstName: firstName!,
+        lastName: lastName!,
+        email,
+        type: "personal",
+        address1: userData.address1!,
+        city: userData.city!,
+        state: userData.state!,
+        postalCode: userData.postalCode!,
+        dateOfBirth: userData.dateOfBirth!,
+        ssn: userData.ssn!,
+      });
+
+      if (!dwollaCustomerUrl) throw new Error("Failed to create Dwolla customer");
+
+      const dwollaCustomerId = dwollaCustomerUrl.split("/").pop()!;
+
+      // Save full user to Appwrite database
+      const newUser = await Databases.createDocument(
+        process.env.NEXT_APPWRITE_DATABASE_ID!,
+        process.env.NEXT_APPWRITE_USER_COLLECTION_ID!,
+        ID.unique(),
+        {
+          userId: newUserAccount.$id,
+          firstName,
+          lastName,
+          email,
+          address1: userData.address1,
+          city: userData.city,
+          state: userData.state,
+          postalCode: userData.postalCode,
+          dateOfBirth: userData.dateOfBirth,
+          ssn: userData.ssn,
+          dwollaCustomerId,
+          dwollaCustomerUrl,
+        }
+      );
+
       const session = await account.createEmailPasswordSession(email, password);
 
       cookies().set("appwrite-session", session.secret, {
@@ -54,10 +95,10 @@ export const signUp = async (userData: SignUpParams) => {
         secure: process.env.NODE_ENV === "production",
       });
 
-      return parseStringify(newUserAccount);
-  } catch (error) {
-      console.error("Error", error);
-      throw error;
+      return parseStringify(newUser);
+  } catch (error: any) {
+      console.error("Sign up error:", error);
+      return { error: error?.message || "Sign up failed. Please try again." };
   }
 };
 
@@ -65,10 +106,36 @@ export const signUp = async (userData: SignUpParams) => {
 export async function getLoggedInUser() {
   try {
     const { account } = await createSessionClient();
-    const user =  await account.get();
+    const result = await account.get();
 
-    return parseStringify(user)
+    const user = await getUserInfo({ userId: result.$id });
+
+    return parseStringify(user);
   } catch (error) {
+    return null;
+  }
+}
+
+export const getUserInfo = async ({ userId }: getUserInfoProps) => {
+  try {
+    const { Databases } = await createAdminClient();
+
+    const user = await Databases.listDocuments(
+      process.env.NEXT_APPWRITE_DATABASE_ID!,
+      process.env.NEXT_APPWRITE_USER_COLLECTION_ID!,
+      [Query.equal("userId", [userId])]
+    );
+
+    if (!user.documents.length) return null;
+
+    const userDoc = user.documents[0];
+
+    return parseStringify({
+      ...userDoc,
+      name: userDoc.name || `${userDoc.firstName || ""} ${userDoc.lastName || ""}`.trim() || "User",
+    });
+  } catch (error) {
+    console.error("Error getting user info:", error);
     return null;
   }
 }
@@ -89,9 +156,9 @@ export const createLinkToken = async (user: User) => {
   try {
     const tokenParams = {
       user: {
-        client_user_id: user.$id,
+        client_user_id: user.userId || user.$id,
       },
-      client_name: `${user.firstName} ${user.lastName}`,
+      client_name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || "Horizon User",
       products: ["auth"] as Products[],
       language: "en",
       country_codes: ["US"] as CountryCode[],
@@ -101,7 +168,7 @@ export const createLinkToken = async (user: User) => {
     return parseStringify({ linkToken: response.data.link_token });
   } catch (error) {
     console.error("Error creating link token:", error);
-    throw error;
+    return null;
   }
 }
 
@@ -149,7 +216,7 @@ export const exchangePublicToken = async ({
 
     // Create a bank account using the user ID, item ID, account ID, access token, funding source URL, and shareableId ID
     await createBankAccount({
-      userId: user.$id,
+      userId: user.userId || user.$id,
       bankId: itemId,
       accountId: accountData.account_id,
       accessToken,
@@ -217,7 +284,7 @@ export const getBanks = async ({ userId }: getBanksProps) => {
     return parseStringify(banks);
   } catch (error) {
     console.error("Error getting banks:", error);
-    throw error;
+    return { total: 0, documents: [] };
   }
 };
 
@@ -232,10 +299,10 @@ export const getBank = async ({ documentId }: getBankProps) => {
       [Query.equal("$id", [documentId])]
     );
 
-    return parseStringify(bank);
+    return parseStringify(bank.documents[0]);
   } catch (error) {
     console.error("Error getting bank:", error);
-    throw error;
+    return null;
   }
 };
 
@@ -250,10 +317,12 @@ export const getBankByAccountId = async ({ accountId }: getBankByAccountIdProps)
       [Query.equal("accountId", [accountId])]
     );
 
-    return parseStringify(bank);
+    if (bank.total !== 1) return null;
+
+    return parseStringify(bank.documents[0]);
   } catch (error) {
     console.error("Error getting bank by account ID:", error);
-    throw error;
+    return null;
   }
 };
 
