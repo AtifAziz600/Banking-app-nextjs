@@ -126,7 +126,14 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
       [Query.equal("userId", [userId])]
     );
 
-    return parseStringify(user.documents[0]);
+    if (!user.documents.length) return null;
+
+    const userDoc = user.documents[0];
+
+    return parseStringify({
+      ...userDoc,
+      name: userDoc.name || `${userDoc.firstName || ""} ${userDoc.lastName || ""}`.trim() || "User",
+    });
   } catch (error) {
     console.error("Error getting user info:", error);
     return null;
@@ -149,9 +156,9 @@ export const createLinkToken = async (user: User) => {
   try {
     const tokenParams = {
       user: {
-        client_user_id: user.$id,
+        client_user_id: user.userId || user.$id,
       },
-      client_name: `${user.firstName} ${user.lastName}`,
+      client_name: `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.name || "Horizon User",
       products: ["auth"] as Products[],
       language: "en",
       country_codes: ["US"] as CountryCode[],
@@ -161,7 +168,7 @@ export const createLinkToken = async (user: User) => {
     return parseStringify({ linkToken: response.data.link_token });
   } catch (error) {
     console.error("Error creating link token:", error);
-    throw error;
+    return null;
   }
 }
 
@@ -209,7 +216,7 @@ export const exchangePublicToken = async ({
 
     // Create a bank account using the user ID, item ID, account ID, access token, funding source URL, and shareableId ID
     await createBankAccount({
-      userId: user.$id,
+      userId: user.userId || user.$id,
       bankId: itemId,
       accountId: accountData.account_id,
       accessToken,
@@ -277,7 +284,7 @@ export const getBanks = async ({ userId }: getBanksProps) => {
     return parseStringify(banks);
   } catch (error) {
     console.error("Error getting banks:", error);
-    throw error;
+    return { total: 0, documents: [] };
   }
 };
 
@@ -292,10 +299,10 @@ export const getBank = async ({ documentId }: getBankProps) => {
       [Query.equal("$id", [documentId])]
     );
 
-    return parseStringify(bank);
+    return parseStringify(bank.documents[0]);
   } catch (error) {
     console.error("Error getting bank:", error);
-    throw error;
+    return null;
   }
 };
 
@@ -310,10 +317,12 @@ export const getBankByAccountId = async ({ accountId }: getBankByAccountIdProps)
       [Query.equal("accountId", [accountId])]
     );
 
-    return parseStringify(bank);
+    if (bank.total !== 1) return null;
+
+    return parseStringify(bank.documents[0]);
   } catch (error) {
     console.error("Error getting bank by account ID:", error);
-    throw error;
+    return null;
   }
 };
 
