@@ -27,9 +27,9 @@ export const signIn = async ({email, password}: signInProps) => {
         });
 
         return parseStringify(response)
-    } catch (error) {
-        console.error("Error", error)
-        throw error;
+    } catch (error: any) {
+        console.error("Sign in error:", error);
+        return { error: error?.message || "Invalid email or password. Please try again." };
     }
 }
 
@@ -55,9 +55,10 @@ export const signUp = async (userData: SignUpParams) => {
       });
 
       return parseStringify(newUserAccount);
-  } catch (error) {
-      console.error("Error", error);
-      throw error;
+  } catch (error: any) {
+      console.error("Sign up error:", error);
+      // Return error object instead of throwing to prevent server crash
+      return { error: error?.message || "Sign up failed. Please try again." };
   }
 };
 
